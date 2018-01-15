@@ -115,6 +115,15 @@ module.exports = class Event {
         });
     }
 
+    modificarEvento(idUser, evento) {
+        return new Promise( (resolve, reject) => {
+            conexion.query(`UPDATE event SET ? WHERE id = ${this.id} AND creator = ${idUser}`, evento, (error, resultado, campos) => {
+                if (error) return reject(error);
+                resolve(resultado);
+            });
+        });
+    }
+
     static attendEvent(idEvento, idUser, tickets = 1) {
         let data = {
             user: idUser,
@@ -124,7 +133,7 @@ module.exports = class Event {
         return new Promise( (resolve, reject) => {
             conexion.query('INSERT INTO user_attend_event SET ?', data, (error, resultado, campos) => {
                 if (error) return reject(error);
-                resolve(resultado);//TODO ver que devuelvo
+                resolve(resultado);//No hay id de la inserción, la clave principal es la id del usuario y del evento
             });
         });
     }

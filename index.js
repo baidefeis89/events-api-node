@@ -9,6 +9,7 @@ http.createServer( (request, response) => {
     let tokenValid = User.validarToken(token);
     let login = '';
     if (tokenValid) idUser = tokenValid.id;
+    let body = [];    
 
     switch(request.method) {
         case 'GET':
@@ -92,7 +93,6 @@ http.createServer( (request, response) => {
             }
         break;
         case 'POST':
-        let body = [];
 
             if(request.url === '/auth/register') {
                 request.on('data', chunk => {
@@ -187,8 +187,48 @@ http.createServer( (request, response) => {
             }
         break;
         case 'PUT':
-            if(request.url.startsWith('/events/')) {
 
+            if(request.url.startsWith('/events/')) {
+                let id = request.url.split('/')[2];
+
+                if (!id) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                } else if (tokenValid) {
+
+                    request.on('data', chunk => {
+                        body.push(chunk);
+                    }).on('end', () => {
+                        body = Buffer.concat(body).toString();
+                        body = JSON.parse(body);
+
+                        if(body.image) {
+                            let image = body.image;
+                            image = image.replace(/^data:image\/png;base64,/, "");
+                            image = Buffer.from(image, 'base64');
+                            
+                            let date = new Date();
+                            let nameFile = body.title + date + date.getUTCMilliseconds() + '.jpg';
+                            fs.writeFileSync(nameFile, image);
+                            body.image = nameFile;
+                        }
+
+                        response.writeHead(200,{"Content-Type":"application/json"});
+                        Event.getEvento(id, idUser).then( evento => {
+                            evento.modificarEvento(idUser, body).then (resultado => {
+                                response.end(JSON.stringify({ok:true, result:resultado}));
+                            }).catch(error => {
+                            response.end(JSON.stringify({ok:false, errorMessage:error}));                                
+                            })
+                        }).catch( error => {
+                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        });
+                    });
+
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                }
             } else if(request.url === '/users/me') {
 
             } else if(request.url === '/users/me/avatar') {
