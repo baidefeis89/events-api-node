@@ -11,8 +11,8 @@ module.exports = class User {
         this.email = userJson.email,
         this.password = userJson.password,
         this.avatar = userJson.avatar,
-        this.latitud = userJson.latitud,
-        this.longitud = userJson.longitud
+        this.lat = userJson.lat,
+        this.lng = userJson.lng
     }
 
     static crearUsuario(usuarioJSON) {
@@ -32,6 +32,16 @@ module.exports = class User {
                 if(resultado.affectedRows < 1) return reject('Error saving');
                 else resolve(resultado.insertId);
                 //else resolve(resultado);
+            });
+        });
+    }
+
+    static getUser(idUser) {
+        return new Promise( (resolve, reject) => {
+            conexion.query(`SELECT id, name, email, avatar, lat, lng FROM user WHERE id = ${idUser}`, (error, resultado, campos) => {
+                if (error) return reject(error);
+                let user = new User(resultado[0]);
+                resolve(user);
             });
         });
     }

@@ -86,8 +86,19 @@ http.createServer( (request, response) => {
                 }
                 
 
-            } else if(request.url.startsWith('/users/')) {
+            } else if(request.url === '/users/me') {
+                if(tokenValid) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
 
+                    User.getUser(idUser).then( resultado => {
+                        response.end(JSON.stringify({ok:true, result:resultado}));
+                    }).catch( error => {
+                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                    })
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, errorMessage:'You are not logged in'}));
+                }
             } else if(request.url.startsWith('/users/event/')) {
 
             }
