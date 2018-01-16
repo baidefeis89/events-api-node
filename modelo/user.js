@@ -47,6 +47,16 @@ module.exports = class User {
         });
     }
 
+    static getUsersAttend(idEvent) {
+        return new Promise( (resolve, reject) => {
+            conexion.query(`SELECT id, name, email, avatar FROM user, user_attend_event WHERE id = user AND event = ${idEvent}`, (error, resultado, campos) => {
+                if (error) return reject(error);
+                if (resultado.length < 1) resolve([]);
+                resolve( resultado.map( user => new User(user) ));
+            });
+        });
+    }
+
     static validarUsuario(usuarioJSON) {
         return new Promise( (resolve, reject) => {
             conexion.query('SELECT password, id FROM user WHERE email="' + usuarioJSON.email + '";', (error, resultado, campos) => {

@@ -99,6 +99,23 @@ http.createServer( (request, response) => {
                     response.writeHead(403, {"Content-Type":"application/json"});
                     response.end(JSON.stringify({ok:false, errorMessage:'You are not logged in'}));
                 }
+            } else if(request.url.startsWith('/users/event/')) {
+                let id = request.url.split('/')[3];
+
+                if (!id) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                } else if(tokenValid) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    User.getUsersAttend(id).then( resultado => {
+                        response.end(JSON.stringify({ok:true, result:resultado}));
+                    }).catch( error => {
+                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                    });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                }
             } else if (request.url.startsWith('/users/')) {
                 let id = request.url.split('/')[2];
 
@@ -116,8 +133,6 @@ http.createServer( (request, response) => {
                     response.writeHead(403, {"Content-Type":"application/json"});
                     response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
                 }
-            }else if(request.url.startsWith('/users/event/')) {
-
             }
         break;
         case 'POST':
