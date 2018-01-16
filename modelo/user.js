@@ -38,8 +38,9 @@ module.exports = class User {
 
     static getUser(idUser) {
         return new Promise( (resolve, reject) => {
-            conexion.query(`SELECT id, name, email, avatar, lat, lng FROM user WHERE id = ${idUser}`, (error, resultado, campos) => {
+            conexion.query(`SELECT id, name, email, avatar, lat, lng FROM user WHERE id = "${idUser}"`, (error, resultado, campos) => {
                 if (error) return reject(error);
+                if (resultado.length < 1) return reject('User not found');
                 let user = new User(resultado[0]);
                 resolve(user);
             });
