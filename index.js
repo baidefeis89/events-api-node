@@ -240,7 +240,30 @@ http.createServer( (request, response) => {
         break;
         case 'DELETE':
             if( request.url.startsWith('/events/')) {
+                let id = request.url.split('/')[2];
 
+                if (!id) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                } else if (tokenValid) {
+
+                    request.on('data', chunk => {
+                        body.push(chunk);
+                    }).on('end', () => {
+                        body = Buffer.concat(body).toString();
+
+                        response.writeHead(200,{"Content-Type":"application/json"});
+                        Event.borrarEvento(id, idUser).then( resultado => {
+                            response.end(JSON.stringify({ok:true, result:resultado}));
+                        }).catch( error => {
+                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        });
+                    });
+
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                }
             }
         break;
         default:
