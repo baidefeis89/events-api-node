@@ -82,11 +82,24 @@ module.exports = class User {
             email: data.email ? data.email : this.email,
             name: data.name ? data.name : this.name
         }
-        
+
         return new Promise( (resolve, reject) => {
             conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
                 if (error) return reject(error);
                 if (resultado.affectedRows < 1) return reject('Update error');
+                resolve(resultado);
+            });
+        });
+    }
+
+    modificarAvatar(data) {
+        let datos = {
+            avatar:  data.avatar ? data.avatar : 'default.png'
+        }
+        return new Promise( (resolve, reject) => {
+            conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
+                if (error) return reject(error);
+                if (resultado.affectedRows < 1) return reject('Avatar update error');
                 resolve(resultado);
             });
         });

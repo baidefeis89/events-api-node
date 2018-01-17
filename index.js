@@ -287,9 +287,41 @@ http.createServer( (request, response) => {
                             });
                         });
                     });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
                 }
             } else if(request.url === '/users/me/avatar') {
+                if (tokenValid) {
+                    request.on('data', chunk => {
+                        body.push(chunk);
+                    }).on('end', () => {
+                        body = Buffer.concat(body).toString();
+                        body = JSON.parse(body);
 
+                        if(body.avatar) {
+                            let avatar = body.avatar;
+                            avatar = avatar.replace(/^data:image\/png;base64,/, "");
+                            avatar = Buffer.from(avatar, 'base64');
+                            
+                            let date = new Date();
+                            let nameFile = idUser + date + date.getUTCMilliseconds() + '.jpg';
+                            fs.writeFileSync(nameFile, avatar);
+                            body.avatar = nameFile;
+                        }
+
+                        User.getUser(idUser).then( usuario => {
+                            usuario.modificarAvatar(body).then( resultado => {
+                                response.end(JSON.stringify({ok:true, result:resultado}));
+                            }).catch( error => {
+                                response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            });
+                        });
+                    });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                }
             } else if(request.url === '/users/me/password') {
 
             }
