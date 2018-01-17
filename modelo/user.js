@@ -77,6 +77,16 @@ module.exports = class User {
         return token;
     }
 
+    modificarEmailUser(data) {
+        return new Promise( (resolve, reject) => {
+            conexion.query('UPDATE user SET ? WHERE id='+this.id,data, (error, resultado, campos) => {
+                if (error) return reject(error);
+                console.log(resultado);
+                resolve(resultado);
+            });
+        });
+    }
+
     static validarToken(token) {
         try {
             let resultado = jwt.verify(token, secreto);

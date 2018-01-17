@@ -126,7 +126,6 @@ module.exports = class Event {
 
     static borrarEvento(idEvento, idUser) {
         return new Promise( (resolve, reject) => {
-            //La base de datos no permite el borrado en cascada
             conexion.query(`DELETE FROM event WHERE id = ${idEvento} AND creator = ${idUser}`, (error, resultado, campos) => {
                 if (error) return reject(error);
                 resolve(resultado);
