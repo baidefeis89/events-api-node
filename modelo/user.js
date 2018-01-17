@@ -78,10 +78,15 @@ module.exports = class User {
     }
 
     modificarEmailUser(data) {
+        let datos = {
+            email: data.email ? data.email : this.email,
+            name: data.name ? data.name : this.name
+        }
+        
         return new Promise( (resolve, reject) => {
-            conexion.query('UPDATE user SET ? WHERE id='+this.id,data, (error, resultado, campos) => {
+            conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
                 if (error) return reject(error);
-                console.log(resultado);
+                if (resultado.affectedRows < 1) return reject('Update error');
                 resolve(resultado);
             });
         });
