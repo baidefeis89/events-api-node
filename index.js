@@ -323,7 +323,25 @@ http.createServer( (request, response) => {
                     response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
                 }
             } else if(request.url === '/users/me/password') {
+                if (tokenValid) {
+                    request.on('data', chunk => {
+                        body.push(chunk);
+                    }).on('end', () => {
+                        body = Buffer.concat(body).toString();
+                        body = JSON.parse(body);
 
+                        User.getUser(idUser).then( usuario => {
+                            usuario.modificarPassword(body).then( resultado => {
+                                response.end(JSON.stringify({ok:true, result:resultado}));
+                            }).catch( error => {
+                                response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            });
+                        });
+                    });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                }
             }
 
         break;

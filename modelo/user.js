@@ -105,6 +105,24 @@ module.exports = class User {
         });
     }
 
+    modificarPassword(data) {
+        let datos = {
+            password: data.password === data.password2 ? data.password : null
+        }
+        return new Promise( (resolve, reject) => {
+            if( datos.password ) {
+                datos.password = md5(datos.password);
+                conexion.query('UPDATE user SET ? WHERE id='+this.id, datos, (error, resultado, campos) => {
+                    if (error) return reject(error);
+                    if (resultado.affectedRows < 1) return reject('Password update error');
+                    resolve(resultado);
+                });
+            } else {
+                return reject('Password is not valid');
+            }
+        });
+    }
+
     static validarToken(token) {
         try {
             let resultado = jwt.verify(token, secreto);
