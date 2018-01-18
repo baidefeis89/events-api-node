@@ -59,6 +59,29 @@ module.exports = class User {
         }) 
     }
 
+    static crearUsuarioFacebook(data) {
+        let datos = {
+            id_facebook: data.id,
+            email: data.email,
+            name: data.name,
+            avatar: data.name + data.id + '.png'
+        }
+
+        return new Promise( (resolve, reject) => {
+            this.userExist(datos.id_facebook).then( resultado => {
+                if (!resultado) {
+                    conexion.query('INSERT INTO user set ?',datos, (error, resultado, campos) => {
+                        if (error) return reject(error);
+                        if (resultado.affectedRows < 1) return reject('Create user failed');
+                        resolve(this.generarToken(datos.email, datos.id));
+                    });
+                } else {
+                    resolve(this.generarToken(resultado.email, resultado.id));
+                }
+            });
+        }) 
+    }
+
     static userExist(id) {
         return new Promise( (resolve, reject) => {
             conexion.query(`SELECT * FROM user WHERE id_facebook = ${id} OR id_google = ${id}`, (error, resultado, campos) => {

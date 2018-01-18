@@ -54,6 +54,22 @@ http.createServer( (request, response) => {
                     });
                 }).end();
             } else if(request.url === '/auth/facebook') {
+                https.request('https://graph.facebook.com/v2.11/me?fields=id,name,email,picture&access_token=' + token)
+                .on('response', function(res) {
+                    body = '';
+                    res.on('data', function(chunk) {
+                    body += chunk
+                    }).on('end', function() {
+                        let datos = JSON.parse(body);
+
+                        User.crearUsuarioFacebook(datos).then( resultado => {
+                            response.end(JSON.stringify({ok:true, token:resultado}));
+                        }).catch( error => {
+                            response.end(JSON.stringify({ok: false, errorMessage:error}));
+                        });
+                        guardarImagen(datos.picture.data.url,datos.name+datos.id);
+                    });
+                }).end(); 
 
             } else if(request.url === '/events') {
                 if(tokenValid) {
