@@ -43,7 +43,7 @@ module.exports = class Event {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance, ' + 
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
-                            'FROM event, user GROUP BY event.id', (error, resultado, campos) => {
+                            'FROM event, user WHERE user.id = ' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
                 if (error) return reject(error);
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
@@ -74,7 +74,7 @@ module.exports = class Event {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance, ' + 
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
-                            'FROM event, user WHERE event.creator=' + idUser + '  GROUP BY event.id', (error, resultado, campos) => {
+                            'FROM event, user WHERE event.creator=' + idUser + ' AND user.id = ' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
                 if (error) return reject(error);
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
@@ -88,7 +88,7 @@ module.exports = class Event {
     static listarEventosAsiste(idUser) {
         return new Promise( (resolve, reject) => {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance ' + 
-                            'FROM event, user WHERE event.id IN (SELECT event FROM user_attend_event WHERE user=' + idUser + ')  GROUP BY event.id', (error, resultado, campos) => {
+                            'FROM event, user WHERE event.id IN (SELECT event FROM user_attend_event WHERE user=' + idUser + ') AND user.id=' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
                 if (error) return reject(error);
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
@@ -104,7 +104,7 @@ module.exports = class Event {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance, ' + 
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
-                            'FROM event, user WHERE event.id="' + idEvento + '" GROUP BY event.id', (error, resultado, campos) => {
+                            'FROM event, user WHERE event.id="' + idEvento + '" AND user.id = "' +  idUser + '" GROUP BY event.id', (error, resultado, campos) => {
                 if (error) return reject(error);
                 if(resultado.length == 0) return reject('This event does not exit');
                 let evento = new Event(resultado[0]);
