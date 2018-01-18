@@ -119,7 +119,8 @@ module.exports = class Event {
         return new Promise( (resolve, reject) => {
             conexion.query(`UPDATE event SET ? WHERE id = ${this.id} AND creator = ${idUser}`, evento, (error, resultado, campos) => {
                 if (error) return reject(error);
-                resolve(resultado);
+                if (resultado.affectedRows < 1) return reject('you can not edit this event');
+                resolve('Event has been updated');
             });
         });
     }
@@ -128,7 +129,8 @@ module.exports = class Event {
         return new Promise( (resolve, reject) => {
             conexion.query(`DELETE FROM event WHERE id = ${idEvento} AND creator = ${idUser}`, (error, resultado, campos) => {
                 if (error) return reject(error);
-                resolve(resultado);
+                if (resultado.affectedRows < 1) return reject('You can not delete this event');
+                resolve('Event has been deleted');
             });
         });
     }
@@ -142,7 +144,8 @@ module.exports = class Event {
         return new Promise( (resolve, reject) => {
             conexion.query('INSERT INTO user_attend_event SET ?', data, (error, resultado, campos) => {
                 if (error) return reject(error);
-                resolve(resultado);//No hay id de la inserción, la clave principal es la id del usuario y del evento
+                if (resultado.affectedRows < 1) return reject('Error')
+                resolve('Attend saved');
             });
         });
     }
