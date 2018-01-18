@@ -36,6 +36,39 @@ module.exports = class User {
         });
     }
 
+    static crearUsuarioGoogle(data) {
+        let datos = {
+            id_google: data.id,
+            email: data.emails[0].value,
+            name: data.displayName,
+            avatar: data.nickname + data.id + '.png'
+        }
+
+        return new Promise( (resolve, reject) => {
+            this.userExist(datos.id_google).then( resultado => {
+                if (!resultado) {
+                    conexion.query('INSERT INTO user set ?',datos, (error, resultado, campos) => {
+                        if (error) return reject(error);
+                        if (resultado.affectedRows < 1) return reject('Create user failed');
+                        resolve(this.generarToken(datos.email, datos.id));
+                    });
+                } else {
+                    resolve(this.generarToken(resultado.email, resultado.id));
+                }
+            });
+        }) 
+    }
+
+    static userExist(id) {
+        return new Promise( (resolve, reject) => {
+            conexion.query(`SELECT * FROM user WHERE id_facebook = ${id} OR id_google = ${id}`, (error, resultado, campos) => {
+                if (error) return reject(error);
+                if (resultado[0]) resolve(new User(resultado[0]))
+                resolve(false);
+            })
+        })
+    }
+
     static getUser(idUser) {
         return new Promise( (resolve, reject) => {
             conexion.query(`SELECT id, name, email, avatar, lat, lng FROM user WHERE id = "${idUser}"`, (error, resultado, campos) => {

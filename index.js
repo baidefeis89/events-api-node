@@ -1,8 +1,23 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 
 const Event = require('./modelo/event');
 const User = require('./modelo/user');
+
+let guardarImagen = (url, name) => {
+    https.request(url)
+    .on('response', function(res) {
+        let body = '';
+        res.setEncoding('binary');
+        res.on('data', function(chunk) {
+            body += chunk
+        }).on('end', function() {
+            fs.writeFileSync(name+".png", body, 'binary');
+        });
+    })
+    .end();
+}
 
 http.createServer( (request, response) => {
     let token = request.headers['authorization'];
@@ -18,6 +33,27 @@ http.createServer( (request, response) => {
 
                 if(tokenValid) response.end(JSON.stringify({ok: true}))
                 else response.end(JSON.stringify({ok: false}));
+
+            } else if(request.url === '/auth/google') {
+                response.writeHead(200, {"Content-Type":"application/json"});
+
+                https.request('https://www.googleapis.com/plus/v1/people/me?access_token='+token)
+                .on('response', function(res) {
+                    body = '';
+                    res.on('data', function(chunk) {
+                        body += chunk;
+                    }).on('end', function() {
+                        let datos = JSON.parse(body);
+
+                        User.crearUsuarioGoogle(datos).then( resultado => {
+                            response.end(JSON.stringify({ok: true, token: resultado}));
+                        }).catch( error => {
+                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        });
+                        guardarImagen(datos.image.url,datos.nickname+datos.id);
+                    });
+                }).end();
+            } else if(request.url === '/auth/facebook') {
 
             } else if(request.url === '/events') {
                 if(tokenValid) {
