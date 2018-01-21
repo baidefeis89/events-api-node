@@ -32,7 +32,7 @@ module.exports = class Event {
                 image: this.image
             };
             conexion.query('INSERT INTO event SET ?', evento, (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not create event');
                 resolve(resultado.insertId);
             });
         });
@@ -44,7 +44,7 @@ module.exports = class Event {
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
                             'FROM event, user WHERE user.id = ' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not get events');
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
                     e.attend = e.attend == 1;
@@ -57,7 +57,7 @@ module.exports = class Event {
     getCreator() {
         return new Promise( (resolve, reject) => {
             conexion.query('SELECT id, name, email, avatar FROM user WHERE id=' + this.creator + ' GROUP BY id', (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not get creator information');
                 this.creator = {};
                 this.creator.id = resultado[0].id;
                 this.creator.name = resultado[0].name;
@@ -75,7 +75,7 @@ module.exports = class Event {
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
                             'FROM event, user WHERE event.creator=' + idUser + ' AND user.id = ' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not get events');
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
                     e.attend = e.attend == 1;
@@ -89,7 +89,7 @@ module.exports = class Event {
         return new Promise( (resolve, reject) => {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance ' + 
                             'FROM event, user WHERE event.id IN (SELECT event FROM user_attend_event WHERE user=' + idUser + ') AND user.id=' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not get events attend');
                 resolve(resultado.map( e => {
                     e.mine = e.creator == idUser;
                     e.attend = true;
@@ -105,7 +105,7 @@ module.exports = class Event {
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
                                 'WHERE event.id = user_attend_event.event AND user_attend_event.user = ' + idUser + ') as attend ' +
                             'FROM event, user WHERE event.id="' + idEvento + '" AND user.id = "' +  idUser + '" GROUP BY event.id', (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not get event');
                 if(resultado.length == 0) return reject('This event does not exit');
                 let evento = new Event(resultado[0]);
                 evento.mine = evento.creator == idUser;
@@ -118,7 +118,7 @@ module.exports = class Event {
     modificarEvento(idUser, evento) {
         return new Promise( (resolve, reject) => {
             conexion.query(`UPDATE event SET ? WHERE id = ${this.id} AND creator = ${idUser}`, evento, (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Event can not be modified');
                 if (resultado.affectedRows < 1) return reject('you can not edit this event');
                 resolve('Event has been updated');
             });
@@ -146,7 +146,7 @@ module.exports = class Event {
         }
         return new Promise( (resolve, reject) => {
             conexion.query('INSERT INTO user_attend_event SET ?', data, (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) return reject('Can not attend event');
                 if (resultado.affectedRows < 1) return reject('Error')
                 resolve('Attend saved');
             });
