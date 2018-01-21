@@ -26,7 +26,19 @@ http.createServer( (request, response) => {
     if (tokenValid) idUser = tokenValid.id;
     let body = [];    
 
+    response.setHeader('Content-Type', 'application/json');
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Request-Method', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    response.setHeader('Access-Control-Allow-Headers', '*');
+    
+    //response.setHeader("Access-Control-Allow-Origin", "*");
+    //response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
     switch(request.method) {
+        case 'OPTIONS':
+            response.end();
+        break;
         case 'GET':
             if(request.url === '/auth/token') {
                 response.writeHead(200, {"Content-Type":"application/json"});
@@ -48,11 +60,12 @@ http.createServer( (request, response) => {
                         User.crearUsuarioGoogle(datos).then( resultado => {
                             response.end(JSON.stringify({ok: true, token: resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            response.end(JSON.stringify({ok:false, error:error}));
                         });
                         guardarImagen(datos.image.url,datos.nickname+datos.id);
                     });
                 }).end();
+
             } else if(request.url === '/auth/facebook') {
                 https.request('https://graph.facebook.com/v2.11/me?fields=id,name,email,picture&access_token=' + token)
                 .on('response', function(res) {
@@ -65,7 +78,7 @@ http.createServer( (request, response) => {
                         User.crearUsuarioFacebook(datos).then( resultado => {
                             response.end(JSON.stringify({ok:true, token:resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok: false, errorMessage:error}));
+                            response.end(JSON.stringify({ok: false, error:error}));
                         });
                         guardarImagen(datos.picture.data.url,datos.name+datos.id);
                     });
@@ -76,27 +89,27 @@ http.createServer( (request, response) => {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     Event.listarEventos(idUser).then( resultado => {
                         return Promise.all( resultado.map( e => e.getCreator() )).then( result => {
-                            response.end(JSON.stringify({ok: true, result:result}));
+                            response.end(JSON.stringify({ok: true, events:result}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage: error}))
+                            response.end(JSON.stringify({ok:false, error: error}))
                         });
                     })
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'You are not logged in'}))
+                    response.end(JSON.stringify({ok:false, error:'You are not logged in'}))
                 }
 
             } else if(request.url === '/events/mine') {
                 if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     Event.listarEventosDe(idUser).then( resultado => {
-                        response.end(JSON.stringify({ok:true, result:resultado}));
+                        response.end(JSON.stringify({ok:true, events:resultado}));
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
 
             } else if(request.url === '/events/attend') {
@@ -104,40 +117,40 @@ http.createServer( (request, response) => {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     Event.listarEventosAsiste(idUser).then( resultado => {
                         return Promise.all( resultado.map( e => e.getCreator() )).then( result => {
-                            response.end(JSON.stringify({ok: true, result:result}));
+                            response.end(JSON.stringify({ok: true, events:result}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage: error}))
+                            response.end(JSON.stringify({ok:false, error: error}))
                         });
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
             } else if(request.url.startsWith('/events/')) {
                 let id = request.url.split('/')[2];
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
                 } else if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     Event.getEvento(id, idUser).then( resultado => {
                         resultado.getCreator().then( resultado => {
-                            response.end(JSON.stringify({ok:true, result:resultado}));
+                            response.end(JSON.stringify({ok:true, event:resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            response.end(JSON.stringify({ok:false, error:error}));
                         });
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
                 
-
             } else if(request.url === '/users/me') {
                 if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
@@ -145,46 +158,62 @@ http.createServer( (request, response) => {
                     User.getUser(idUser).then( resultado => {
                         response.end(JSON.stringify({ok:true, result:resultado}));
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     })
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok:false, error:'You are not logged in'}));
                 }
+
             } else if(request.url.startsWith('/users/event/')) {
                 let id = request.url.split('/')[3];
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
                 } else if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     User.getUsersAttend(id).then( resultado => {
                         response.end(JSON.stringify({ok:true, result:resultado}));
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
             } else if (request.url.startsWith('/users/')) {
                 let id = request.url.split('/')[2];
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'User id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'User id not found'}));
                 } else if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
                     User.getUser(id).then( resultado => {
                         response.end(JSON.stringify({ok:true, result:resultado}));
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false, errorMessage:error}));
+                        response.end(JSON.stringify({ok:false, error:error}));
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
+            } else if (request.url.startsWith('/img/events/')) {
+                if (fs.existsSync('.' + request.url)) {
+                    response.writeHead(200, {"Content-Type":"image/jpg"});
+                    fs.readFile('.' + request.url, (error, data) => {
+                        response.end(data);
+                    });
+                } else {
+                    response.end();
+                }
+
+            } else {
+                response.writeHead(404, {"Content-Type":"application/json"});
+                response.end(JSON.stringify({ok: false, error: 'URI not found'}));
             }
         break;
         case 'POST':
@@ -201,11 +230,11 @@ http.createServer( (request, response) => {
                         response.end(JSON.stringify({ ok:true, result:resultado }));
 
                     }).catch( error => {
-                        response.end(JSON.stringify({ ok:false, errorMessage:error }));
+                        response.end(JSON.stringify({ ok:false, error:error }));
 
                     });
+                });
 
-                })
             } else if(request.url === '/auth/login') {
                 request.on('data', chunk => {
                     body.push(chunk);
@@ -217,9 +246,10 @@ http.createServer( (request, response) => {
                     User.validarUsuario(user).then( resultado => {
                         response.end(JSON.stringify({ok:true,token:resultado}));
                     }).catch( error => {
-                        response.end(JSON.stringify({ok:false,errorMessage:error}));
+                        response.end(JSON.stringify({ok:false,error:error}));
                     });
-                })
+                });
+
             } else if(request.url === '/events') {
                 if(tokenValid) {
                     request.on('data', chunk => {
@@ -230,11 +260,13 @@ http.createServer( (request, response) => {
                         
                         let image = body.image;
                         image = image.replace(/^data:image\/png;base64,/, "");
+                        image = image.replace(/^data:image\/jpg;base64,/, "");
+                        image = image.replace(/^data:image\/jpeg;base64,/, "");
+                        
                         image = Buffer.from(image, 'base64');
                         
-                        let date = new Date();
-                        let nameFile = body.title + date + date.getUTCMilliseconds() + '.jpg';
-                        fs.writeFileSync(nameFile, image);
+                        let nameFile = new Date().getTime() + '.jpg';
+                        fs.writeFileSync('./img/events/' + nameFile, image);
                         body.image = nameFile;
                         body.creator = idUser;
                         
@@ -244,12 +276,12 @@ http.createServer( (request, response) => {
                         event.crear().then( resultado => {
                             response.end(JSON.stringify({ok:true, result: resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage: error}));
+                            response.end(JSON.stringify({ok:false, error: error}));
                         });
                     })
                 } else {
                     response.writeHead(403, {"Content-Type":"aplication/json"});                    
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
 
             } else if(request.url.startsWith('/events/attend/')) {
@@ -257,7 +289,7 @@ http.createServer( (request, response) => {
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
                 } else if (tokenValid) {
 
                     request.on('data', chunk => {
@@ -270,15 +302,18 @@ http.createServer( (request, response) => {
                         Event.attendEvent(id, idUser, tickets).then( resultado => {
                             response.end(JSON.stringify({ok:true, result:resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            response.end(JSON.stringify({ok:false, error:error}));
                         });
                     });
 
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
             
+            } else {
+                response.writeHead(404, {"Content-Type":"application/json"});
+                response.end(JSON.stringify({ok: false, error: 'URI not found'}));
             }
         break;
         case 'PUT':
@@ -288,7 +323,7 @@ http.createServer( (request, response) => {
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
                 } else if (tokenValid) {
 
                     request.on('data', chunk => {
@@ -299,12 +334,15 @@ http.createServer( (request, response) => {
 
                         if(body.image) {
                             let image = body.image;
+
                             image = image.replace(/^data:image\/png;base64,/, "");
+                            image = image.replace(/^data:image\/jpg;base64,/, "");
+                            image = image.replace(/^data:image\/jpeg;base64,/, "");
+
                             image = Buffer.from(image, 'base64');
-                            
-                            let date = new Date();
-                            let nameFile = body.title + date + date.getUTCMilliseconds() + '.jpg';
-                            fs.writeFileSync(nameFile, image);
+                        
+                            let nameFile = new Date().getTime() + '.jpg';
+                            fs.writeFileSync('./img/events/' + nameFile, image);
                             body.image = nameFile;
                         }
 
@@ -313,17 +351,18 @@ http.createServer( (request, response) => {
                             evento.modificarEvento(idUser, body).then (resultado => {
                                 response.end(JSON.stringify({ok:true, result:resultado}));
                             }).catch(error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));                                
+                            response.end(JSON.stringify({ok:false, error:error}));                                
                             })
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            response.end(JSON.stringify({ok:false, error:error}));
                         });
                     });
 
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
             } else if(request.url === '/users/me') {
                 if (tokenValid) {
                     request.on('data', chunk => {
@@ -335,14 +374,15 @@ http.createServer( (request, response) => {
                             usuario.modificarEmailUser(body).then( resultado => {
                                 response.end(JSON.stringify({ok:true, result:resultado}));
                             }).catch( error => {
-                                response.end(JSON.stringify({ok:false, errorMessage:error}));
+                                response.end(JSON.stringify({ok:false, error:error}));
                             });
                         });
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
             } else if(request.url === '/users/me/avatar') {
                 if (tokenValid) {
                     request.on('data', chunk => {
@@ -366,14 +406,15 @@ http.createServer( (request, response) => {
                             usuario.modificarAvatar(body).then( resultado => {
                                 response.end(JSON.stringify({ok:true, result:resultado}));
                             }).catch( error => {
-                                response.end(JSON.stringify({ok:false, errorMessage:error}));
+                                response.end(JSON.stringify({ok:false, error:error}));
                             });
                         });
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+
             } else if(request.url === '/users/me/password') {
                 if (tokenValid) {
                     request.on('data', chunk => {
@@ -386,14 +427,17 @@ http.createServer( (request, response) => {
                             usuario.modificarPassword(body).then( resultado => {
                                 response.end(JSON.stringify({ok:true, result:resultado}));
                             }).catch( error => {
-                                response.end(JSON.stringify({ok:false, errorMessage:error}));
+                                response.end(JSON.stringify({ok:false, error:error}));
                             });
                         });
                     });
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+            } else {
+                response.writeHead(404, {"Content-Type":"application/json"});
+                response.end(JSON.stringify({ok: false, error: 'URI not found'}));
             }
 
         break;
@@ -403,7 +447,7 @@ http.createServer( (request, response) => {
 
                 if (!id) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok:false, errorMessage:'Event id not found'}));
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
                 } else if (tokenValid) {
 
                     request.on('data', chunk => {
@@ -415,17 +459,22 @@ http.createServer( (request, response) => {
                         Event.borrarEvento(id, idUser).then( resultado => {
                             response.end(JSON.stringify({ok:true, result:resultado}));
                         }).catch( error => {
-                            response.end(JSON.stringify({ok:false, errorMessage:error}));
+                            response.end(JSON.stringify({ok:false, error:error}));
                         });
                     });
 
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
-                    response.end(JSON.stringify({ok: false, errorMessage:'You are not logged in'}));
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
+            } else {
+                response.writeHead(404, {"Content-Type":"application/json"});
+                response.end(JSON.stringify({ok: false, error: 'URI not found'}));
             }
         break;
         default:
+            response.writeHead(405, {"Content-Type":"application/json"});
+            response.end(JSON.stringify({ok: false, error: 'Request method not allowed'}));
         break;
     }
 }).listen(8080);

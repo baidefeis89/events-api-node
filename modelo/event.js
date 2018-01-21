@@ -128,7 +128,10 @@ module.exports = class Event {
     static borrarEvento(idEvento, idUser) {
         return new Promise( (resolve, reject) => {
             conexion.query(`DELETE FROM event WHERE id = ${idEvento} AND creator = ${idUser}`, (error, resultado, campos) => {
-                if (error) return reject(error);
+                if (error) {
+                    if (error.sqlState == "23000") return reject('the event can not be deleted, tickets may have been sold')
+                    return reject('Can not be deleted');
+                }
                 if (resultado.affectedRows < 1) return reject('You can not delete this event');
                 resolve('Event has been deleted');
             });
