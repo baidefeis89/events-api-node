@@ -234,7 +234,7 @@ http.createServer( (request, response) => {
                         
                         let nameFile = new Date().getTime() + '.jpg';
                         fs.writeFileSync('./img/users/' + nameFile, avatar);
-                        user.avatar = nameFile;
+                        user.avatar = user.avatar ? nameFile : null;
 
                     response.writeHead(200, {"Content-Type":"aplication/json"});                    
                     User.crearUsuario(user).then( resultado => {
