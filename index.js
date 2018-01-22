@@ -225,13 +225,24 @@ http.createServer( (request, response) => {
                     body = Buffer.concat(body).toString();
                     let user = JSON.parse(body);
 
+                    let avatar = user.avatar;
+                        avatar = avatar.replace(/^data:image\/png;base64,/, "");
+                        avatar = avatar.replace(/^data:image\/jpg;base64,/, "");
+                        avatar = avatar.replace(/^data:image\/jpeg;base64,/, "");
+                        
+                        avatar = Buffer.from(avatar, 'base64');
+                        
+                        let nameFile = new Date().getTime() + '.jpg';
+                        fs.writeFileSync('./img/users/' + nameFile, avatar);
+                        user.avatar = nameFile;
+
                     response.writeHead(200, {"Content-Type":"aplication/json"});                    
                     User.crearUsuario(user).then( resultado => {
                         response.end(JSON.stringify({ ok:true, result:resultado }));
 
                     }).catch( error => {
                         response.end(JSON.stringify({ ok:false, error:error }));
-
+                        fs.unlink('./img/users/' + nameFile, () => {});
                     });
                 });
 
@@ -277,6 +288,7 @@ http.createServer( (request, response) => {
                             response.end(JSON.stringify({ok:true, result: resultado}));
                         }).catch( error => {
                             response.end(JSON.stringify({ok:false, error: error}));
+                            fs.unlink('./img/events/' + nameFile, () => {});
                         });
                     })
                 } else {

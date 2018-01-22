@@ -17,20 +17,33 @@ module.exports = class User {
 
     static crearUsuario(usuarioJSON) {
         return new Promise( (resolve, reject) => {
-            if (!usuarioJSON.password) return reject('Password is required');
-            if (!usuarioJSON.email) return reject('Email is required');
             if (!usuarioJSON.name) return reject('Name is required');
+            if (!usuarioJSON.email) return reject('Email is required');
+            if (usuarioJSON.email !== usuarioJSON.email2) return reject('Emails are not equals');
+            if (!usuarioJSON.password) return reject('Password is required');
+            if (!usuarioJSON.avatar) return reject('Avatar is required');
 
-            usuarioJSON.password = md5(usuarioJSON.password);
+            let data = {
+                name: usuarioJSON.name,
+                email: usuarioJSON.email,
+                password: md5(usuarioJSON.password),
+                avatar: usuarioJSON.avatar,
+                lat: usuarioJSON.lat,
+                lng: usuarioJSON.lng
+            }
 
-            conexion.query('INSERT INTO user set ?', usuarioJSON, (error, resultado, campose) => {
+            conexion.query('INSERT INTO user set ?', data, (error, resultado, campose) => {
                 if (error) {
                     if (error.sqlState === "23000") return reject('This email is already registered');
                     return reject(error);
                 }
 
                 if(resultado.affectedRows < 1) return reject('Error saving');
-                else resolve(resultado.insertId);
+                else {
+                    let token = this.generarToken(usuarioJSON.email, resultado.insertId);
+                    
+                    resolve({id: resultado.insertId, token:token});
+                }
                 //else resolve(resultado);
             });
         });
