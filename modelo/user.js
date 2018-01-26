@@ -54,14 +54,14 @@ module.exports = class User {
             id_google: data.id,
             email: data.emails[0].value,
             name: data.displayName,
-            avatar: data.nickname + data.id + '.png'
+            avatar: data.avatar
         }
 
         return new Promise( (resolve, reject) => {
             this.userExist(datos.id_google).then( resultado => {
                 if (!resultado) {
                     conexion.query('INSERT INTO user set ?',datos, (error, resultado, campos) => {
-                        if (error) return reject(error);
+                        if (error) return reject('This email already exist');
                         if (resultado.affectedRows < 1) return reject('Create user failed');
                         resolve(this.generarToken(datos.email, datos.id));
                     });
@@ -77,7 +77,7 @@ module.exports = class User {
             id_facebook: data.id,
             email: data.email,
             name: data.name,
-            avatar: data.name + data.id + '.png'
+            avatar: data.avatar
         }
 
         return new Promise( (resolve, reject) => {

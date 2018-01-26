@@ -13,7 +13,7 @@ let guardarImagen = (url, name) => {
         res.on('data', function(chunk) {
             body += chunk
         }).on('end', function() {
-            fs.writeFileSync(name+".png", body, 'binary');
+            fs.writeFileSync('./img/users/' + name+".jpg", body, 'binary');
         });
     })
     .end();
@@ -56,13 +56,13 @@ http.createServer( (request, response) => {
                         body += chunk;
                     }).on('end', function() {
                         let datos = JSON.parse(body);
-
+                        datos.avatar = new Date().getTime() + '.jpg';
                         User.crearUsuarioGoogle(datos).then( resultado => {
                             response.end(JSON.stringify({ok: true, token: resultado}));
                         }).catch( error => {
                             response.end(JSON.stringify({ok:false, error:error}));
                         });
-                        guardarImagen(datos.image.url,datos.nickname+datos.id);
+                        guardarImagen(datos.image.url, datos.avatar);
                     });
                 }).end();
 
@@ -74,13 +74,13 @@ http.createServer( (request, response) => {
                     body += chunk
                     }).on('end', function() {
                         let datos = JSON.parse(body);
-
+                        datos.avatar = new Date().getTime() + '.jpg';
                         User.crearUsuarioFacebook(datos).then( resultado => {
                             response.end(JSON.stringify({ok:true, token:resultado}));
                         }).catch( error => {
                             response.end(JSON.stringify({ok: false, error:error}));
                         });
-                        guardarImagen(datos.picture.data.url,datos.name+datos.id);
+                        guardarImagen(datos.picture.data.url, datos.avatar);
                     });
                 }).end(); 
 
@@ -93,6 +93,8 @@ http.createServer( (request, response) => {
                         }).catch( error => {
                             response.end(JSON.stringify({ok:false, error: error}))
                         });
+                    }).catch( error => {
+                        response.end(JSON.stringify({ok: false, error: error}));
                     })
                 } else {
                     response.writeHead(403, {"Content-Type":"application/json"});
@@ -406,11 +408,12 @@ http.createServer( (request, response) => {
                         if(body.avatar) {
                             let avatar = body.avatar;
                             avatar = avatar.replace(/^data:image\/png;base64,/, "");
+                            avatar = avatar.replace(/^data:image\/jpg;base64,/, "");
+                            avatar = avatar.replace(/^data:image\/jpeg;base64,/, "");                            
                             avatar = Buffer.from(avatar, 'base64');
                             
-                            let date = new Date();
-                            let nameFile = idUser + date + date.getUTCMilliseconds() + '.jpg';
-                            fs.writeFileSync(nameFile, avatar);
+                            let nameFile = new Date().getTime() + '.jpg';
+                            fs.writeFileSync('./img/users/' + nameFile, avatar);
                             body.avatar = nameFile;
                         }
 
