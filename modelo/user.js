@@ -61,12 +61,15 @@ module.exports = class User {
             this.userExist(datos.id_google).then( resultado => {
                 if (!resultado) {
                     conexion.query('INSERT INTO user set ?',datos, (error, resultado, campos) => {
-                        if (error) return reject('This email already exist');
+                        if (error) {
+                            if (error.sqlState === "23000") return reject('This email is already registered by other way, try another login method');
+                            return reject('Login error');
+                        }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve(this.generarToken(datos.email, datos.id));
+                        resolve({token:this.generarToken(datos.email, datos.id), new: true});
                     });
                 } else {
-                    resolve(this.generarToken(resultado.email, resultado.id));
+                    resolve({token:this.generarToken(resultado.email, resultado.id), new: false});
                 }
             });
         }) 
@@ -84,12 +87,15 @@ module.exports = class User {
             this.userExist(datos.id_facebook).then( resultado => {
                 if (!resultado) {
                     conexion.query('INSERT INTO user set ?',datos, (error, resultado, campos) => {
-                        if (error) return reject(error);
+                        if (error) {
+                            if (error.sqlState === "23000") return reject('This email is already registered by other way, try another login method');
+                            return reject('Login error');
+                        }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve(this.generarToken(datos.email, datos.id));
+                        resolve({token:this.generarToken(datos.email, datos.id), new: true});
                     });
                 } else {
-                    resolve(this.generarToken(resultado.email, resultado.id));
+                    resolve({token:this.generarToken(datos.email, datos.id), new: false});
                 }
             });
         }) 

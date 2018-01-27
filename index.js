@@ -13,7 +13,7 @@ let guardarImagen = (url, name) => {
         res.on('data', function(chunk) {
             body += chunk
         }).on('end', function() {
-            fs.writeFileSync('./img/users/' + name+".jpg", body, 'binary');
+            fs.writeFileSync('./img/users/' + name, body, 'binary');
         });
     })
     .end();
@@ -58,11 +58,11 @@ http.createServer( (request, response) => {
                         let datos = JSON.parse(body);
                         datos.avatar = new Date().getTime() + '.jpg';
                         User.crearUsuarioGoogle(datos).then( resultado => {
-                            response.end(JSON.stringify({ok: true, token: resultado}));
+                            response.end(JSON.stringify({ok: true, token: resultado.token}));
+                            if (resultado.new) guardarImagen(datos.image.url, datos.avatar);
                         }).catch( error => {
                             response.end(JSON.stringify({ok:false, error:error}));
                         });
-                        guardarImagen(datos.image.url, datos.avatar);
                     });
                 }).end();
 
@@ -76,11 +76,11 @@ http.createServer( (request, response) => {
                         let datos = JSON.parse(body);
                         datos.avatar = new Date().getTime() + '.jpg';
                         User.crearUsuarioFacebook(datos).then( resultado => {
-                            response.end(JSON.stringify({ok:true, token:resultado}));
+                            response.end(JSON.stringify({ok:true, token:resultado.token}));
+                            if (resultado.new) guardarImagen(datos.picture.data.url, datos.avatar);
                         }).catch( error => {
                             response.end(JSON.stringify({ok: false, error:error}));
                         });
-                        guardarImagen(datos.picture.data.url, datos.avatar);
                     });
                 }).end(); 
 
