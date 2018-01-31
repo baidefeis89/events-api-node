@@ -309,7 +309,7 @@ http.createServer( (request, response) => {
                     request.on('data', chunk => {
                         body.push(chunk);
                     }).on('end', () => {
-                        body = Buffer.concat(body).toString();
+                        body = JSON.parse(Buffer.concat(body).toString());
 
                         let tickets = body.number;
                         response.writeHead(200,{"Content-Type":"application/json"});

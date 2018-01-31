@@ -138,7 +138,7 @@ module.exports = class Event {
         });
     }
 
-    static attendEvent(idEvento, idUser, tickets = 1) {
+    static attendEvent(idEvento, idUser, tickets) {
         let data = {
             user: idUser,
             event: idEvento,
