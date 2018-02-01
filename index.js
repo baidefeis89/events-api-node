@@ -238,7 +238,7 @@ http.createServer( (request, response) => {
                         fs.writeFileSync('./img/users/' + nameFile, avatar);
                         user.avatar = user.avatar ? nameFile : null;
 
-                    response.writeHead(200, {"Content-Type":"aplication/json"});                    
+                    response.writeHead(200, {"Content-Type":"application/json"});                    
                     User.crearUsuario(user).then( resultado => {
                         response.end(JSON.stringify({ ok:true, result:resultado }));
 
@@ -255,7 +255,7 @@ http.createServer( (request, response) => {
                     body = Buffer.concat(body).toString();
                     let user = JSON.parse(body);
 
-                    response.writeHead(200, {"Content-Type":"aplication/json"});
+                    response.writeHead(200, {"Content-Type":"application/json"});
                     User.validarUsuario(user).then( resultado => {
                         response.end(JSON.stringify({ok:true,token:resultado}));
                     }).catch( error => {
@@ -272,29 +272,35 @@ http.createServer( (request, response) => {
                         body = JSON.parse(body);
                         
                         let image = body.image;
-                        image = image.replace(/^data:image\/png;base64,/, "");
-                        image = image.replace(/^data:image\/jpg;base64,/, "");
-                        image = image.replace(/^data:image\/jpeg;base64,/, "");
-                        
-                        image = Buffer.from(image, 'base64');
-                        
-                        let nameFile = new Date().getTime() + '.jpg';
-                        fs.writeFileSync('./img/events/' + nameFile, image);
-                        body.image = nameFile;
-                        body.creator = idUser;
-                        
-                        let event = new Event(body);
-                        
-                        response.writeHead(200, {"Content-Type":"aplication/json"});                    
-                        event.crear().then( resultado => {
-                            response.end(JSON.stringify({ok:true, result: resultado}));
-                        }).catch( error => {
-                            response.end(JSON.stringify({ok:false, error: error}));
-                            fs.unlink('./img/events/' + nameFile, () => {});
-                        });
+
+                        if (image) {
+                            image = image.replace(/^data:image\/png;base64,/, "");
+                            image = image.replace(/^data:image\/jpg;base64,/, "");
+                            image = image.replace(/^data:image\/jpeg;base64,/, "");
+                            
+                            image = Buffer.from(image, 'base64');
+                            
+                            let nameFile = new Date().getTime() + '.jpg';
+                            fs.writeFileSync('./img/events/' + nameFile, image);
+                            body.image = nameFile;
+                            body.creator = idUser;
+                            
+                            let event = new Event(body);
+                            
+                            response.writeHead(200, {"Content-Type":"application/json"});                    
+                            event.crear().then( resultado => {
+                                response.end(JSON.stringify({ok:true, result: resultado}));
+                            }).catch( error => {
+                                response.end(JSON.stringify({ok:false, error: error}));
+                                fs.unlink('./img/events/' + nameFile, () => {});
+                            });
+                        } else {
+                            response.writeHead(200, {"Content-Type":"application/json"});
+                            response.end(JSON.stringify({ok: false, error:'Image is required'}));
+                        }
                     })
                 } else {
-                    response.writeHead(403, {"Content-Type":"aplication/json"});                    
+                    response.writeHead(403, {"Content-Type":"application/json"});                    
                     response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
 

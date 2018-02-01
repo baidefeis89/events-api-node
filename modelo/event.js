@@ -20,6 +20,13 @@ module.exports = class Event {
 
     crear() {
         return new Promise( (resolve, reject) => {
+            if(!this.title) return reject('Title is required');
+            if(!this.description) return reject('Description is required');
+            if(!this.date) return reject('Date is required');
+            if(!this.price) return reject('Price is required');
+            if(!this.lat || !this.lng) return reject('Coordinates is required');
+            if(!this.address) return reject('Address is required');
+
             let evento = {
                 creator: this.creator,
                 title: this.title,
