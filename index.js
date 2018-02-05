@@ -203,7 +203,8 @@ http.createServer( (request, response) => {
                     response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
 
-            } else if (request.url.startsWith('/img/events/')) {
+            } else if (request.url.startsWith('/img/events/') ||
+                       request.url.startsWith('/img/users/')) {
                 if (fs.existsSync('.' + request.url)) {
                     response.writeHead(200, {"Content-Type":"image/jpg"});
                     fs.readFile('.' + request.url, (error, data) => {
@@ -352,7 +353,7 @@ http.createServer( (request, response) => {
                         body = Buffer.concat(body).toString();
                         body = JSON.parse(body);
 
-                        if(body.image) {
+                        if(body.image && !body.image.startsWith('http://')) {
                             let image = body.image;
 
                             image = image.replace(/^data:image\/png;base64,/, "");
@@ -364,6 +365,8 @@ http.createServer( (request, response) => {
                             let nameFile = new Date().getTime() + '.jpg';
                             fs.writeFileSync('./img/events/' + nameFile, image);
                             body.image = nameFile;
+                        } else {
+                            body.image = null;
                         }
 
                         response.writeHead(200,{"Content-Type":"application/json"});

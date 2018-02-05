@@ -123,8 +123,20 @@ module.exports = class Event {
     }
 
     modificarEvento(idUser, evento) {
+        let data = {
+            title: evento.title,
+            description: evento.description,
+            date: evento.date,
+            price: evento.price,
+            lat: evento.lat,
+            lng: evento.lng,
+            address: evento.address
+        }
+
+        if (evento.image) data.image = evento.image;
+
         return new Promise( (resolve, reject) => {
-            conexion.query(`UPDATE event SET ? WHERE id = ${this.id} AND creator = ${idUser}`, evento, (error, resultado, campos) => {
+            conexion.query(`UPDATE event SET ? WHERE id = ${this.id} AND creator = ${idUser}`, data, (error, resultado, campos) => {
                 if (error) return reject('Event can not be modified');
                 if (resultado.affectedRows < 1) return reject('you can not edit this event');
                 resolve('Event has been updated');
