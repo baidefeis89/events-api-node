@@ -163,8 +163,8 @@ module.exports = class User {
             if (!datos.name) return reject('Name can not be empty');
             
             conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
-                if (error) return reject(error);
-                if (resultado.affectedRows < 1) return reject('Update error');
+                if (error && error.sqlState === '23000') return reject('This email already exist')
+                if (error || resultado.affectedRows < 1) return reject('Update error');
                 resolve(resultado);
             });
         });
