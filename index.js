@@ -414,7 +414,7 @@ http.createServer( (request, response) => {
                         body = Buffer.concat(body).toString();
                         body = JSON.parse(body);
 
-                        if(body.avatar) {
+                        if(body.avatar && body.avatar.startsWith('data:image')) {
                             let avatar = body.avatar;
                             avatar = avatar.replace(/^data:image\/png;base64,/, "");
                             avatar = avatar.replace(/^data:image\/jpg;base64,/, "");
@@ -424,6 +424,8 @@ http.createServer( (request, response) => {
                             let nameFile = new Date().getTime() + '.jpg';
                             fs.writeFileSync('./img/users/' + nameFile, avatar);
                             body.avatar = nameFile;
+                        } else {
+                            body.avatar = null;
                         }
 
                         User.getUser(idUser).then( usuario => {

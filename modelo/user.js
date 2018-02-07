@@ -154,11 +154,14 @@ module.exports = class User {
 
     modificarEmailUser(data) {
         let datos = {
-            email: data.email ? data.email : this.email,
-            name: data.name ? data.name : this.name
+            email: data.email,
+            name: data.name
         }
 
         return new Promise( (resolve, reject) => {
+            if (!datos.email) return reject('Email can not be empty');
+            if (!datos.name) return reject('Name can not be empty');
+            
             conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
                 if (error) return reject(error);
                 if (resultado.affectedRows < 1) return reject('Update error');
@@ -169,9 +172,11 @@ module.exports = class User {
 
     modificarAvatar(data) {
         let datos = {
-            avatar:  data.avatar ? data.avatar : 'default.png'
+            avatar:  data.avatar
         }
+
         return new Promise( (resolve, reject) => {
+            if (!datos.avatar) return reject('File is not valid');
             conexion.query('UPDATE user SET ? WHERE id='+this.id,datos, (error, resultado, campos) => {
                 if (error) return reject(error);
                 if (resultado.affectedRows < 1) return reject('Avatar update error');
