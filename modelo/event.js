@@ -76,7 +76,7 @@ module.exports = class Event {
     
     }
 
-    static listarEventosDe(idUser) {
+    static listarEventosDe(idUser, idUserPeticion) {
         return new Promise( (resolve, reject) => {
             conexion.query('SELECT event.*, haversine(user.lat, user.lng, event.lat, event.lng) as distance, ' + 
                                 '(SELECT COUNT(*) FROM user_attend_event ' + 
@@ -84,7 +84,7 @@ module.exports = class Event {
                             'FROM event, user WHERE event.creator=' + idUser + ' AND user.id = ' + idUser + ' GROUP BY event.id', (error, resultado, campos) => {
                 if (error) return reject('Can not get events');
                 resolve(resultado.map( e => {
-                    e.mine = e.creator == idUser;
+                    e.mine = e.creator == idUserPeticion;
                     e.attend = e.attend == 1;
                     return new Event(e);
                 }));

@@ -104,7 +104,25 @@ http.createServer( (request, response) => {
             } else if(request.url === '/events/mine') {
                 if(tokenValid) {
                     response.writeHead(200,{"Content-Type":"application/json"});
-                    Event.listarEventosDe(idUser).then( resultado => {
+                    Event.listarEventosDe(idUser, idUser).then( resultado => {
+                        response.end(JSON.stringify({ok:true, events:resultado}));
+                    }).catch( error => {
+                        response.end(JSON.stringify({ok:false, error:error}));
+                    });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
+                }
+
+            } else if(request.url.startsWith('/events/user/')) {
+                let id = request.url.split('/')[3];
+
+                if (!id) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, error:'User id not found'}));
+                } else if(tokenValid) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    Event.listarEventosDe(id, idUser).then( resultado => {
                         response.end(JSON.stringify({ok:true, events:resultado}));
                     }).catch( error => {
                         response.end(JSON.stringify({ok:false, error:error}));
