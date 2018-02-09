@@ -48,7 +48,7 @@ http.createServer( (request, response) => {
 
             } else if(request.url === '/auth/google') {
                 response.writeHead(200, {"Content-Type":"application/json"});
-
+                
                 https.request('https://www.googleapis.com/plus/v1/people/me?access_token='+token)
                 .on('response', function(res) {
                     body = '';
@@ -67,6 +67,8 @@ http.createServer( (request, response) => {
                 }).end();
 
             } else if(request.url === '/auth/facebook') {
+                response.writeHead(200,{"Content-Type":"application/json"});
+                
                 https.request('https://graph.facebook.com/v2.11/me?fields=id,name,email,picture&access_token=' + token)
                 .on('response', function(res) {
                     body = '';
@@ -276,7 +278,9 @@ http.createServer( (request, response) => {
 
                     response.writeHead(200, {"Content-Type":"application/json"});
                     User.validarUsuario(user).then( resultado => {
-                        response.end(JSON.stringify({ok:true,token:resultado}));
+                        User.updatePosition(user, resultado).then( res => {
+                            response.end(JSON.stringify({ok:true,token:resultado}));
+                        }).catch( error => response.end(JSON.stringify({ok:true, token:resultado})));
                     }).catch( error => {
                         response.end(JSON.stringify({ok:false,error:error}));
                     });

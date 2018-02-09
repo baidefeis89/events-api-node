@@ -44,7 +44,6 @@ module.exports = class User {
                     
                     resolve({id: resultado.insertId, token:token});
                 }
-                //else resolve(resultado);
             });
         });
     }
@@ -210,5 +209,20 @@ module.exports = class User {
         } catch (e) {
             return false;
         }
+    }
+
+    static updatePosition(user, token) {
+        let validToken = this.validarToken(token);
+        let id = validToken ? validToken.id : false;
+
+        return new Promise( (resolve, reject) => {
+            if (user.lat && user.lng) {
+                conexion.query(`UPDATE user SET lat=${user.lat}, lng=${user.lng} WHERE id=${id}`, (error, resultado, campos) => {
+                    if (error) return reject(error);
+                    if (resultado.affectedRows < 1) return reject('Error');
+                    resolve(resultado);
+                });
+            }
+        });
     }
 }
