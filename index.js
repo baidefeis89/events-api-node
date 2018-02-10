@@ -1,3 +1,8 @@
+/**
+ * @author Ivan Galan Pastor
+ * 
+ *  Archivo principal donde se gestionan las peticiones que atiende el servidor
+ */  
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -32,9 +37,6 @@ http.createServer( (request, response) => {
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
     response.setHeader('Access-Control-Allow-Headers', '*');
     
-    //response.setHeader("Access-Control-Allow-Origin", "*");
-    //response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-
     switch(request.method) {
         case 'OPTIONS':
             response.end();

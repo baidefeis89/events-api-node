@@ -1,3 +1,7 @@
+/**
+ * @author Ivan Galan Pastor
+ * Clase Event y métodos relacionados con ella
+ */
 const conexion = require('./bdconfig');
 
 module.exports = class Event {

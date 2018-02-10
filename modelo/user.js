@@ -1,3 +1,7 @@
+/**
+ * @author Ivan Galan Pastor
+ * Clase User y métodos relacionados con ella
+ */
 const conexion = require('./bdconfig');
 const jwt = require('jsonwebtoken');
 const md5 = require('md5');
@@ -123,7 +127,7 @@ module.exports = class User {
 
     static getUsersAttend(idEvent) {
         return new Promise( (resolve, reject) => {
-            conexion.query(`SELECT id, name, email, avatar FROM user, user_attend_event WHERE id = user AND event = ${idEvent}`, (error, resultado, campos) => {
+            conexion.query(`SELECT user.id, name, email, avatar FROM user, user_attend_event WHERE user.id = user AND event = ${idEvent}`, (error, resultado, campos) => {
                 if (error) return reject(error);
                 if (resultado.length < 1) resolve([]);
                 resolve( resultado.map( user => new User(user) ));
