@@ -115,7 +115,7 @@ INSERT INTO `user` (`id`, `name`, `email`, `password`, `avatar`, `lat`, `lng`, `
 (67, 'blanca', 'blanca@blanca', '1d0f769d73278ddc6e765f88265e18b6', '1516613940091.jpg', '38.361167', '-0.492595', NULL, NULL),
 (128, 'UsuarioConGeoloc', 'usuario@usuario', 'f8032d5cae3de20fcec887f395ec9a6a', '1516613940091.jpg', '38.361194', '-0.492522', NULL, NULL),
 (136, 'aaa', 'aaa@aaa', '47bce5c74f589f4867dbd57e9ca9f808', '1518428147740.jpg', '0.000000', '0.000000', NULL, NULL),
-(137, 'miau', 'miau@miau', '50941bf460efcb1356249a2e5018f8c8', '1518428384725.jpg', '38.361198', '-0.492552', NULL, NULL),
+(122, 'miau', 'miau@miau', '50941bf460efcb1356249a2e5018f8c8', '1518428384725.jpg', '38.361198', '-0.492552', NULL, NULL),
 (138, 'test', 'test@test', '098f6bcd4621d373cade4e832627b4f6', '1518428485518.jpg', '0.000000', '0.000000', NULL, NULL);
 
 -- --------------------------------------------------------
