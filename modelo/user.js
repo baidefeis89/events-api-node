@@ -69,7 +69,7 @@ module.exports = class User {
                             return reject('Login error');
                         }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve({token:this.generarToken(datos.email, resultado.id), new: true});
+                        resolve({token:this.generarToken(datos.email, resultado.insertId), new: true});
                     });
                 } else {
                     resolve({token:this.generarToken(resultado.email, resultado.id), new: false});
@@ -95,7 +95,7 @@ module.exports = class User {
                             return reject('Login error');
                         }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve({token:this.generarToken(datos.email, resultado.id), new: true});
+                        resolve({token:this.generarToken(datos.email, resultado.insertId), new: true});
                     });
                 } else {
                     resolve({token:this.generarToken(datos.email, resultado.id), new: false});
