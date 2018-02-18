@@ -26,14 +26,14 @@ module.exports = class User {
             if (usuarioJSON.email !== usuarioJSON.email2) return reject('Emails are not equals');
             if (!usuarioJSON.password) return reject('Password is required');
             if (!usuarioJSON.avatar) return reject('Avatar is required');
-
+           
             let data = {
                 name: usuarioJSON.name,
                 email: usuarioJSON.email,
                 password: md5(usuarioJSON.password),
                 avatar: usuarioJSON.avatar,
-                lat: usuarioJSON.lat,
-                lng: usuarioJSON.lng
+                lat: usuarioJSON.lat || 0,
+                lng: usuarioJSON.lng || 0
             }
 
             conexion.query('INSERT INTO user set ?', data, (error, resultado, campose) => {
@@ -69,7 +69,7 @@ module.exports = class User {
                             return reject('Login error');
                         }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve({token:this.generarToken(datos.email, datos.id), new: true});
+                        resolve({token:this.generarToken(datos.email, resultado.id), new: true});
                     });
                 } else {
                     resolve({token:this.generarToken(resultado.email, resultado.id), new: false});
@@ -95,10 +95,10 @@ module.exports = class User {
                             return reject('Login error');
                         }
                         if (resultado.affectedRows < 1) return reject('Create user failed');
-                        resolve({token:this.generarToken(datos.email, datos.id), new: true});
+                        resolve({token:this.generarToken(datos.email, resultado.id), new: true});
                     });
                 } else {
-                    resolve({token:this.generarToken(datos.email, datos.id), new: false});
+                    resolve({token:this.generarToken(datos.email, resultado.id), new: false});
                 }
             });
         }) 
@@ -127,7 +127,7 @@ module.exports = class User {
 
     static getUsersAttend(idEvent) {
         return new Promise( (resolve, reject) => {
-            conexion.query(`SELECT user.id, name, email, avatar FROM user, user_attend_event WHERE user.id = user AND event = ${idEvent}`, (error, resultado, campos) => {
+            conexion.query(`SELECT user.id, name, email, avatar FROM user, user_attend_event WHERE user.id = user AND event = ${idEvent} GROUP BY user.id`, (error, resultado, campos) => {
                 if (error) return reject(error);
                 if (resultado.length < 1) resolve([]);
                 resolve( resultado.map( user => new User(user) ));
