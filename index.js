@@ -18,7 +18,7 @@ let guardarImagen = (url, name) => {
         res.on('data', function(chunk) {
             body += chunk
         }).on('end', function() {
-            fs.writeFileSync('./img/users/' + name, body, 'binary');
+            fs.writeFileSync(__dirname + '/img/users/' + name, body, 'binary');
         });
     })
     .end();
@@ -282,7 +282,7 @@ http.createServer( (request, response) => {
                         
                         avatar = Buffer.from(avatar, 'base64');
                         
-                        fs.writeFileSync('./img/users/' + nameFile, avatar);
+                        fs.writeFileSync(__dirname + '/img/users/' + nameFile, avatar);
                         
                         user.avatar = user.avatar ? nameFile : null;
                     }
@@ -293,7 +293,7 @@ http.createServer( (request, response) => {
 
                     }).catch( error => {
                         response.end(JSON.stringify({ ok:false, error:error }));
-                        if (nameFile) fs.unlink('./img/users/' + nameFile, () => {});
+                        if (nameFile) fs.unlink(__dirname + '/img/users/' + nameFile, () => {});
                     });
                 });
 
@@ -332,7 +332,7 @@ http.createServer( (request, response) => {
                             image = Buffer.from(image, 'base64');
                             
                             let nameFile = new Date().getTime() + '.jpg';
-                            fs.writeFileSync('./img/events/' + nameFile, image);
+                            fs.writeFileSync(__dirname + '/img/events/' + nameFile, image);
                             body.image = nameFile;
                             body.creator = idUser;
                             
@@ -343,7 +343,7 @@ http.createServer( (request, response) => {
                                 response.end(JSON.stringify({ok:true, result: resultado}));
                             }).catch( error => {
                                 response.end(JSON.stringify({ok:false, error: error}));
-                                fs.unlink('./img/events/' + nameFile, () => {});
+                                fs.unlink(__dirname + '/img/events/' + nameFile, () => {});
                             });
                         } else {
                             response.writeHead(200, {"Content-Type":"application/json"});
@@ -413,7 +413,7 @@ http.createServer( (request, response) => {
                             image = Buffer.from(image, 'base64');
                         
                             let nameFile = new Date().getTime() + '.jpg';
-                            fs.writeFileSync('./img/events/' + nameFile, image);
+                            fs.writeFileSync(__dirname + '/img/events/' + nameFile, image);
                             body.image = nameFile;
                         } else {
                             body.image = null;
@@ -472,7 +472,7 @@ http.createServer( (request, response) => {
                             avatar = Buffer.from(avatar, 'base64');
                             
                             let nameFile = new Date().getTime() + '.jpg';
-                            fs.writeFileSync('./img/users/' + nameFile, avatar);
+                            fs.writeFileSync(__dirname + '/img/users/' + nameFile, avatar);
                             body.avatar = nameFile;
                         } else {
                             body.avatar = null;
