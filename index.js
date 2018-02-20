@@ -153,6 +153,28 @@ http.createServer( (request, response) => {
                     response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
                 }
 
+            } else if(request.url.startsWith('/events/attend/')) {
+                let id = request.url.split('/')[3];
+
+                if (!id) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok:false, error:'Event id not found'}));
+                } else if(tokenValid) {
+                    response.writeHead(200,{"Content-Type":"application/json"});
+                    Event.listarEventosAsiste(id).then( resultado => {
+                        return Promise.all( resultado.map( e => e.getCreator() )).then( result => {
+                            response.end(JSON.stringify({ok: true, events:result}));
+                        }).catch( error => {
+                            response.end(JSON.stringify({ok:false, error: error}))
+                        });
+                    }).catch( error => {
+                        response.end(JSON.stringify({ok:false, error:error}));
+                    });
+                } else {
+                    response.writeHead(403, {"Content-Type":"application/json"});
+                    response.end(JSON.stringify({ok: false, error:'You are not logged in'}));
+                }
+
             } else if(request.url.startsWith('/events/')) {
                 let id = request.url.split('/')[2];
 
@@ -227,9 +249,9 @@ http.createServer( (request, response) => {
 
             } else if (request.url.startsWith('/img/events/') ||
                        request.url.startsWith('/img/users/')) {
-                if (fs.existsSync('.' + request.url)) {
+                if (fs.existsSync(__dirname + request.url)) {
                     response.writeHead(200, {"Content-Type":"image/jpg"});
-                    fs.readFile('.' + request.url, (error, data) => {
+                    fs.readFile(__dirname + request.url, (error, data) => {
                         response.end(data);
                     });
                 } else {
@@ -250,16 +272,20 @@ http.createServer( (request, response) => {
                     body = Buffer.concat(body).toString();
                     let user = JSON.parse(body);
 
-                    let avatar = user.avatar;
+                    let nameFile = new Date().getTime() + '.jpg';
+                    
+                    if (user.avatar) { 
+                        let avatar = user.avatar;
                         avatar = avatar.replace(/^data:image\/png;base64,/, "");
                         avatar = avatar.replace(/^data:image\/jpg;base64,/, "");
                         avatar = avatar.replace(/^data:image\/jpeg;base64,/, "");
                         
                         avatar = Buffer.from(avatar, 'base64');
                         
-                        let nameFile = new Date().getTime() + '.jpg';
                         fs.writeFileSync('./img/users/' + nameFile, avatar);
+                        
                         user.avatar = user.avatar ? nameFile : null;
+                    }
 
                     response.writeHead(200, {"Content-Type":"application/json"});                    
                     User.crearUsuario(user).then( resultado => {
@@ -267,7 +293,7 @@ http.createServer( (request, response) => {
 
                     }).catch( error => {
                         response.end(JSON.stringify({ ok:false, error:error }));
-                        fs.unlink('./img/users/' + nameFile, () => {});
+                        if (nameFile) fs.unlink('./img/users/' + nameFile, () => {});
                     });
                 });
 

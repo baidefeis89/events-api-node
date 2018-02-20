@@ -227,6 +227,7 @@ module.exports = class User {
                     resolve(resultado);
                 });
             }
+            return reject('Coords not found');
         });
     }
 }
